@@ -1,0 +1,55 @@
+#+TITLE: SARIT-PM
+
+
+* Notes
+
+** Lucene queries
+
+The only tricky thing is to exclude the Lucene keywords.
+
+
+#+BEGIN_SRC xquery
+  declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
+  declare namespace saxon="http://saxon.sf.net/";
+  declare option saxon:output "omit-xml-declaration=yes";
+  declare option output:omit-xml-declaration "yes";
+
+  (: 
+   (concat "^" (regexp-opt '("AND" "OR" "NOT")) "$")
+   "^AND|NOT|OR$"
+  :)
+
+  string-join(
+	  for $w in tokenize("anyathā AND sati", "\s")
+	  return
+	  if (matches($w, "^AND|NOT|OR$")) then
+	  $w
+	  else
+	  concat("*", $w, "*"),
+	  "---")
+
+#+END_SRC
+
+
+#+BEGIN_SRC xml
+  <s>anyathā AND sati</s>
+#+END_SRC
+
+
+** exide hacks
+
+*** Run realisitic queries
+
+#+BEGIN_SRC xquery
+  xquery version "3.1";
+
+  import module namespace app="http://www.tei-c.org/tei-simple/templates" at "/db/apps/sarit-pm/modules/app.xql";
+  import module namespace config="http://www.tei-c.org/tei-simple/config" at "/db/apps/sarit-pm/modules/config.xqm";
+  declare namespace tei="http://www.tei-c.org/ns/1.0";
+  import module namespace pm-config="http://www.tei-c.org/tei-simple/pm-config" at "pm-config.xql";
+  import module namespace functx="http://www.functx.com";
+
+  import module namespace metadata="http://exist-db.org/ns/sarit/metadata/" at "/db/apps/sarit-pm/modules/metadata.xql";
+
+  app:query(<node/>, map {}, "*lakṣaṇa* AND *pratyakṣ*", "tei-text", "narrow", "all", "all", "new")
+#+END_SRC

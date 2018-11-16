@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader xml:lang="en">
+    <fileDesc>
+      <title>Resources for testing of SLP1 searching</title>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div>
+        <p xml:id="adeva" xml:lang="sa-Deva">एवं मया बहुषु दुर्मतिनिर्मितेषु</p>
+        <p xml:id="bdeva" xml:lang="sa-Deva">प्रत्युद्धृतेषु खलु दूषणकण्टकेषु ।</p>
+        <p xml:id="cdeva" xml:lang="sa-Deva">आचार्यनीतिपथ एव विशोधितोऽय-</p>
+        <p xml:id="ddeva" xml:lang="sa-Deva">मुत्सार्य मत्सरमनेन जनः प्रयातु ॥</p>
+      </div>
+      <div>
+        <p xml:id="aiast" xml:lang="sa-Deva">evaṃ mayā bahuṣu durmatinirmiteṣu</p>
+        <p xml:id="biast" xml:lang="sa-Deva">pratyuddhṛteṣu khalu dūṣaṇakaṇṭakeṣu ।</p>
+        <p xml:id="ciast" xml:lang="sa-Deva">ācāryanītipatha eva viśodhito'ya-</p>
+        <p xml:id="diast" xml:lang="sa-Deva">mutsārya matsaramanena janaḥ prayātu ॥</p>
+      </div>
+    </body>
+  </text>
+</TEI>

@@ -15,83 +15,7 @@
     <main class="container">
         <div class="row">
             <section class="col-md-3 col-md-push-9">
-                <form id="search-form" action="search.html" class="form form-horizontal">
-                    <div class="well well-sm">
-                        <div class="form-group">
-                            <div class="col-md-12 col-xs-12">
-                                <span class="input-group">
-                                    <input name="query" type="search" class="templates:form-control form-control"
-                                           placeholder="Search For What?"/>
-                                    <span class="input-group-btn">
-                                        <button id="f-btn-search" type="submit" class="sarit-search-btn btn">
-                                            <span class="glyphicon glyphicon-search"/>
-                                        </button>
-                                    </span>
-                                </span>
-                                <input type="hidden" name="field" value="text"/>
-                            </div>
-                        </div>
-                        <div class="form-group" data-toggle="tooltip" data-placement="left"
-                             title="Search With Which Scripts?">
-                            <div class="col-md-12 col-xs-12">
-                                <select name="query-scripts" class="form-control"
-                                        data-template="templates:form-control">
-                                    <option value="all" selected="selected">With Devanagari and IAST</option>
-                                    <option value="sa-Deva">With Devanagari</option>
-                                    <option value="sa-Latn">With IAST</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group" data-toggle="tooltip" data-placement="left" title="Use Which Index?">
-                            <div class="col-md-12 col-xs-12">
-                                <select name="index" class="form-control" data-template="templates:form-control">
-                                    <option value="ngram" selected="selected">Use NGram Index</option>
-                                    <option value="lucene">Use Lucene Full-Text Index</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group" data-toggle="tooltip" data-placement="left"
-                             title="Search Which Document Part?">
-                            <div class="col-md-12 col-xs-12">
-                                <select multiple="multiple" name="tei-target" class="form-control"
-                                        data-template="templates:form-control">
-                                    <option value="tei-text" selected="selected">Search TEI Text</option>
-                                    <option value="tei-header">Search TEI Header</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group" data-toggle="tooltip" data-placement="left"
-                             title="Search In Texts By Which Authors?">
-                            <div class="col-md-12 col-xs-12">
-                                <span class="app:work-authors"/>
-                            </div>
-                        </div>
-                        <div class="form-group" data-toggle="tooltip" data-placement="left"
-                             title="Search Narrowly Or Broadly?">
-                            <div class="col-md-12 col-xs-12">
-                                <select name="query-scope" class="form-control" data-template="templates:form-control">
-                                    <option value="narrow" selected="selected">Perform Narrow Search</option>
-                                    <option value="broad">Perform Broad Search</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div id="bool-selection" class="form-group" data-toggle="tooltip" data-placement="left"
-                             title="Perform New Search or Continue Last Search?">
-                            <div class="col-md-12 col-xs-12">
-                                <select name="bool" class="form-control" data-template="templates:form-control">
-                                    <option value="new" selected="selected">Perform New Search</option>
-                                    <option value="and">AND Last Search</option>
-                                    <option value="or">OR Last Search</option>
-                                    <option value="not">NOT Last Search</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div>The automatic conversion of scripts does not handle wildcards reliably. In order to get the
-                            expected results please input the search term in IAST to look for words in texts encoded in
-                            Roman script and use Devanāgarī for texts encoded in Devanāgarī.
-                        </div>
-                    </div>
-                </form>
+	      <div data-template="templates:include" data-template-path="templates/search-form.html"/>
                 <div class="panel panel-info" data-template="app:show-if-logged-in">
                     <div class="panel-heading">
                         <h3 class="panel-title">Upload</h3>
@@ -184,32 +108,33 @@
                                                 <a href="" data-template="app:work-lang"/>
                                             </td>
                                             <td>
-                                                <div class="btn-group toolbar">
-                                                    <div class="btn-group hidden-xs">
-                                                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                                                            <i class="material-icons">print</i>
-                                                            <span class="hidden-xs">PDF</span>
-                                                            <span class="caret"/>
-                                                        </button>
-                                                        <ul class="dropdown-menu" role="menu">
-                                                            <li>
-                                                                <a class="download-link" data-template="app:download-link" data-template-type="pdf" title="Download as PDF">PDF (FO Version)</a>
-                                                            </li>
-                                                            <li data-template="app:show-if-logged-in">
-                                                                <a target="_blank" data-template="app:download-link" data-template-type="pdf" data-template-source="true">
-                                                                    FO Source
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="download-link" data-template="app:download-link" data-template-type="tex" title="Download as PDF">PDF (LaTeX Version)</a>
-                                                            </li>
-                                                            <li data-template="app:show-if-logged-in">
-                                                                <a target="_blank" data-template="app:download-link" data-template-type="tex" data-template-source="true">
-                                                                    TeX Source
-                                                                </a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
+                                              <div class="btn-group toolbar">
+						<!-- TODO: uncomment and fix when PDFs are working -->
+                                                    <!-- <div class="btn-group hidden-xs"> -->
+                                                    <!--     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"> -->
+                                                    <!--         <i class="material-icons">print</i> -->
+                                                    <!--         <span class="hidden-xs">PDF</span> -->
+                                                    <!--         <span class="caret"/> -->
+                                                    <!--     </button> -->
+                                                    <!--     <ul class="dropdown-menu" role="menu"> -->
+                                                    <!--         <li> -->
+                                                    <!--             <a class="download-link" data-template="app:download-link" data-template-type="pdf" title="Download as PDF">PDF (FO Version)</a> -->
+                                                    <!--         </li> -->
+                                                    <!--         <li data-template="app:show-if-logged-in"> -->
+                                                    <!--             <a target="_blank" data-template="app:download-link" data-template-type="pdf" data-template-source="true"> -->
+                                                    <!--                 FO Source -->
+                                                    <!--             </a> -->
+                                                    <!--         </li> -->
+                                                    <!--         <li> -->
+                                                    <!--             <a class="download-link" data-template="app:download-link" data-template-type="tex" title="Download as PDF">PDF (LaTeX Version)</a> -->
+                                                    <!--         </li> -->
+                                                    <!--         <li data-template="app:show-if-logged-in"> -->
+                                                    <!--             <a target="_blank" data-template="app:download-link" data-template-type="tex" data-template-source="true"> -->
+                                                    <!--                 TeX Source -->
+                                                    <!--             </a> -->
+                                                    <!--         </li> -->
+                                                    <!--     </ul> -->
+                                                    <!-- </div> -->
                                                     <a class="btn btn-default hidden-xs download-link" data-template="app:download-link" data-template-type="epub" title="Download as epub ebook">
                                                         <i class="material-icons">book</i>
                                                     </a>

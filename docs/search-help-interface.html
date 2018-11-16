@@ -39,143 +39,31 @@
                         <p>The start page of the SARIT web platform displays a list of the texts in
                             the SARIT corpus and the search interface. </p>
                         <img width="100%" src="resources/img/search-interface.png"/>
-                        <p>The list of texts gives the text's title, notes its putative author(s) or
-                            commentator(s) and whether the text uses Devanagari script or
-                            romanisation. Most texts exist in both Devanagari script or
-                            romanisation, one converted from the other.</p>
-                        <p>There are also links for downloading the texts in various formats: epub,
-                            pdf and xml (zipped).</p>
-                        <p> The last link gives the possibility of opening the XML containing the
-                            text in an application called eXide. eXide is an application in the <a
-                                    href="http:exist-db.org/">eXist-db database</a> that has been used
-                            to develop the SARIT application. eXide also allows you to perform
-                            searches, using XPath and XQuery, the main programming languages used in
-                            the SARIT application, but that is another (rather long) story ….</p>
-                        <p>The search interface, located on the right of the list of works, offers a
-                            number of options, among these to search based on the information
-                            displayed in the list.</p>
-                        <p>These options will be described in the following. The names of the
-                            dropdown menus are displayed when hovering over them.</p>
-                    </div>
-                    <div>
-                        <h3>Search For What?</h3>
-                        <p>The search term is of course where you will be actively searching for
-                            occurrences of the words and phrases you are interested in. All the
-                            other choices you make in the search interface restrict or modify the
-                            search term(s) you input here. </p>
-                    </div>
-                    <div>
-                        <h3>Search With Which Scripts?</h3>
-                        <p>Your search term is automatically converted to make your search proceed
-                            in both IAST romanisation and in Devanagari. If you wish to limit this,
-                            select which script to search with.</p>
-                    </div>
-                    <div>
-                        <h3>Use Which Index?</h3>
-                        <p>This is where it gets a little technical ….</p>
-                        <p>All searches in SARIT go via a database index. A database index is
-                            basically like the index of a book, only it contains references for each
-                            and every word or string of characters in the text.</p>
-                        <p>In SARIT, you can search using two different indexes, an NGram Index and
-                            a Lucene Full-Text Index.</p>
-                        <p>The NGram Index analyses the text in terms of strings, regardless of any
-                            word divisions. The index consists of overlapping chunks of text three
-                            characters long (tri-grams).</p>
-                        <p>The Lucene Full-Text Index analyses the text in terms of words, that is
-                            strings as separated by spaces, etc. The index consists of each and
-                            every word in the text.</p>
-                        <p>When you search with the NGram Index, you will find all occurrences of
-                            your search term, regardless of whether it occurs as a whole word (that
-                            is, space-separated string) or as only part of a word.</p>
-                        <p>When you search with the Lucene Full-Text Index, you will only find
-                            occurrences of your search term that are identical with whole words
-                            (that is, strings separated by spaces, etc.). You will not find occurrences that
-                            are only part of a word, unless you use Regular Expressions.</p>
-                        <p>The Lucene Full-Text Index is thus useful for texts segmented into words,
-                            that is, texts divided into chunks that resemble words in European
-                            languages.</p>
-                        <p>Word division is a matter of degree. Among the SARIT texts, only the
-                            Arthaśāstra can be said to be divided into words in a way which makes
-                            use of the Lucene Full-Text index immediately suitable. For information
-                            about the remaining texts, see <a href="search-help-word-division.html">Word Division</a>.
-                            With these texts, you should as a rule use the
-                            NGram Index.</p>
-                        <p>Note that this does not mean that the NGram Index cannot be used with
-                            texts that are divided into words – the two indexes make possible
-                            different searches, one for words (the Lucene Full-Text Index) and one
-                            for strings of characters (the NGram Index). You will almost always get
-                            more hits with the NGram Index, but the Lucene Full-Text Index gives you
-                            more search options (and is slower).</p>
-                        <p>There are further explanations in the <a href="search-help-index.html">Indexes and Searching
-                            Help</a>.</p>
-                    </div>
-                    <div>
-                        <h3>Search Which Document Part?</h3>
-                        <p>Each SARIT text consists of </p>
-                        <ul>
-                            <li>a header which provides information about the text edition and</li>
-                            <li>the text proper</li>
-                        </ul>
-                        . <p>In this dropdown menu you can select to search in one or both of
-                        these document parts.</p>
-                    </div>
-                    <div>
-                        <h3>Search Narrowly Or Broadly?</h3>
-                        <p>SARIT marks up texts according to the TEI Guidelines. According to the
-                            TEI Guidelines, a text forms a hierarchy. A book thus may consist of a
-                            number of chapters, which contain a number of sections, which contain a
-                            number of paragraphs – which then contain the text itself. A narrow
-                            search is one which searches in the uppermost text-containing levels of
-                            the text (in the example, the paragraphs), whereas a broad search is one
-                            which searches in the levels of the text immediately above these (that
-                            is, in the example, the sections).</p>
-                        <p>This is primarily of use if you wish to search for the co-occurrence of
-                            several words, for whereas they may co-occur in a single section, it is
-                            not necessarily the case that they co-occur in a single paragraph. </p>
-                        <p>In this explanation, sections and paragraphs have been used to illustrate
-                            this concept, but SARIT texts are more complicated than this. For a
-                            fuller explanation, see the <a href="search-help-index.html">Indexes and
-                                Searching Help</a>
-                        </p>
-                    </div>
-                    <div>
-                        <h3>Search In Texts By Which Authors?</h3>
-                        <p>You can choose <em>which texts</em> to target in your search in two
-                            different ways.</p>
-                        <p>If you wish to make selections among the texts based on their author, you
-                            can use this dropdown menu. Note that you can select several
-                            authors.</p>
-                        <p>In order to select individual texts to search in, you can click the
-                            checkboxes to the left of their titles in the list of works.</p>
-                        <p>Note that if you do not make any choice, you will search in all available
-                            texts – there is no need to click all checkboxes in order to perform a
-                            search throughout all texts.</p>
-                    </div>
-                    <div>
-                        <h3>Perform New Search or Continue Last Search? </h3>
-                        <p>This gives you the option to refine your previous search, by restricting
-                            or broadening the search result. </p>
-                        <p>The default value is to perform a new search. If you perform a new search, your search will
-                            not relate to your
-                            previous search.</p>
-                        <p>If you choose "AND Last Search", your search will restrict your last
-                            search by requiring that the search criteria for both the last and the
-                            present search are satisfied. You typically use this to search for the
-                            co-occurence of two words. </p>
-                        <p>If you choose "OR Last Search", your search will broaden your last
-                            search by including both the results from the last and the present
-                            search in the search results. You typically use this to search for
-                            alternative forms of a word. </p>
-                        <p>If you choose "NOT Last Search", your search will restrict your last
-                            search by excluding the results from the present search. You use this to
-                            remove specific hits from the search results. </p>
+                        <p>The list of texts gives the text's title,
+                        notes its putative author(s) or
+                        commentator(s), and whether the text uses
+                        Devanagari script or romanisation.</p>
+                        <p>There are also links for downloading the
+                        texts in various formats, currently as epub or
+                        raw XML.</p>
+
+                        <p>The search interface, located on the right
+                        of the list of works, allows you to search
+                        through the texts in various ways.  The
+                        options are described in <a
+                        href="search-help-brief.html#search-help-interface">the
+                        brief search help</a>.  If you tick one of the
+                        boxes to the left of the title in the list of
+                        works, the search will apply only to the
+                        selected text or texts, regardless of the
+                        author selection.</p>
                     </div>
                 </section>
-                <section>
+                <section id="search-help-tei-header-toc">
                     <h2>The TEI Header and Table of Contents</h2>
                     <div>
                         <p>Clicking a title in the list of works will display the TEI header of the
-                            text and its table of contents.</p>
+                            text and its table of contents, for example:</p>
                         <img width="75%" src="resources/img/header.png"/>
                         <p>The TEI header describes the text and the editorial processes that have
                             resulted in the SARIT edition. Since the header can be quite long, by
@@ -183,9 +71,11 @@
                             lists the persons and institutions that have contributed to the SARIT
                             version is shown. If you wish to access the whole TEI header, click the
                             Toggle Full Header button.</p>
-                        <p>At the bottom of this page is shown the table of contents of the SARIT
-                            text. This may divide into three parts, front matter, the text itself,
-                            and back matter.</p>
+                        <p>At the bottom of the page you will find the
+                        table of contents of the SARIT text. You can
+                        expand the contents by clicking on the
+                        <code>+</code>, or go to a section by clicking
+                        the link.</p>
                         <p>The table of contents can be expanded by clicking on the plus signs and
                             collapsed again by clicking on minus signs. The table of contents
                             descends three levels, i.e. divisions below the third level are not
@@ -195,31 +85,33 @@
                     </div>
                 </section>
                 <section>
-                    <h2>The Hitlist</h2>
+                    <h2>The search results</h2>
                     <div>
-                        <p>After performing a search for e.g. "lakṣaṇa", you will be presented with
-                            a hitlist.</p>
+                        <p>After performing a search for, e.g.,
+                        <code>*lakṣaṇ* AND *pratyakṣ*</code> limited
+                        to the Tattvasaṅgraha, you will be presented
+                        with a list of hits somewhat like this:</p>
                         <img src="resources/img/hitlist.png"/>
                         <p>The results of your search are presented in the form of a
                             keywords-in-context (KWIC) display, centring the strings that were found
-                            matching to your search term, with the context the matches occur in on
-                            the left and right. Clicking the center string (here, "lakṣaṇa") will
-                            display the text in which the hit occurs, with all matches
+                            matching your search term, with the context the matches occur in on
+                            the left and right. Clicking the highlighted string in the center will
+                            display the passage of text in which the hit occurs, with all matches
                             highlighted.</p>
-                        <p>The order in which the hits occur differs according to the index used for
-                            search. With an NGram Index, the hits are simply ordered according to
-                            the title of the texts in which they occur. With a Lucene Full-Text
-                            Index, the hits are ordered according to their score. The score is a
+                            <p>The hits are ordered according to their score. The score is a
                             measure of the relevancy of the hits in relation to the search. What
                             this means is a little technical, but, generally speaking, the more
                             often more of your search terms occur in a hit and the rarer the search
                             terms are within the texts searched, the higher the score will be.</p>
-                        <p>The search term matches are grouped in hits, i.e. according to the levels
-                            of the document targeted by your search, with clickable references to
-                            the text as a whole (showing the header information and table of
-                            contents) and the part of the text in which the hit occurred (displaying
-                            the text itself). One hit (such as the second here) may contain several
-                            matches.</p>
+                        <p>The matches are grouped according to
+                        meaningful divisions of the texts (e.g.,
+                        sections).  The head of a group links to the
+                        text as a whole (showing the header
+                        information and table of contents) and the
+                        part of the text in which the hit occurred
+                        (displaying the text itself).  One such group (such
+                        as the first one here) may contain several
+                        high-ranking matches.</p>
                         <p>The hits are shown twenty at a time on each page. At the top, you have
                             the total number of hits and a means of navigating from hit group to hit
                             group.</p>
@@ -232,8 +124,7 @@
                             page, you are shown the page view.</p>
                         <img src="resources/img/page-view.png"/>
                         <p>If you have clicked on a search term link in the hitlist, the search term(s)
-                            will all be highlighted if you are searching through the Luucene Full-Text index, but only
-                            one will be highlighted if you search through the NGram Index.</p>
+                            will all be highlighted.</p>
                         <p>It is not possible to view a whole text, due to the heavy load on the
                             browser this would entail in case of very long texts, but as a substitute for this you can
                             download the whole text in a number of formats from the list of

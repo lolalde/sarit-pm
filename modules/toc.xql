@@ -127,7 +127,10 @@ declare %private function toc:generate-toc-from-div($root, $long, $position, $vi
     (
         (:if it is a leaf:)
         (:show its parent:)
-        toc:toc-div($root/parent::tei:div, $long, $position, 'no-list-item', $view)
+        if ($root/parent::tei:div) then
+            toc:toc-div($root/parent::tei:div, $long, $position, 'no-list-item', $view)
+        else
+            ()
         ,
         (:show its preceding siblings:)
         <ul>

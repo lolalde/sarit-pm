@@ -1,7 +1,10 @@
 xquery version "3.0";
 
-import module namespace pmu="http://www.tei-c.org/tei-simple/xquery/util" at "/db/apps/tei-simple/content/util.xql";
-import module namespace odd="http://www.tei-c.org/tei-simple/odd2odd" at "/db/apps/tei-simple/content/odd2odd.xql";
+(:import module namespace pmu="http://www.tei-c.org/tei-simple/xquery/util" at "/db/apps/tei-publisher-lib/content/util.xql";:)
+(:import module namespace odd="http://www.tei-c.org/tei-simple/odd2odd" at "/db/apps/tei-publisher-lib/content/odd2odd.xql";:)
+
+import module namespace pmu="http://www.tei-c.org/tei-simple/xquery/util";
+import module namespace odd="http://www.tei-c.org/tei-simple/odd2odd";
 
 declare namespace repo="http://exist-db.org/xquery/repo";
 
@@ -25,7 +28,7 @@ declare function local:generate-code($collection as xs:string) {
     for $source in xmldb:get-child-resources($collection || "/resources/odd")[ends-with(., ".odd")]
     for $module in ("web", "print", "latex", "epub")
     for $file in pmu:process-odd(
-        doc(odd:get-compiled($collection || "/resources/odd", $source, $collection || "/resources/odd/compiled")),
+        odd:get-compiled($collection || "/resources/odd", $source),
         $collection || "/transform",
         $module,
         "../transform",
@@ -55,15 +58,15 @@ sm:chown(xs:anyURI($target || "/data"), $repoxml//repo:permissions[1]/@user),
 sm:chgrp(xs:anyURI($target || "/data"), $repoxml//repo:permissions[1]/@group),
 sm:chmod(xs:anyURI($target || "/modules/view.xql"), "rwsr-xr-x"),
 (:sm:chmod(xs:anyURI($target || "/modules/transform.xql"), "rwsr-xr-x"),:)
-sm:chmod(xs:anyURI($target || "/modules/pdf.xql"), "rwsr-xr-x"),
-sm:chmod(xs:anyURI($target || "/modules/get-epub.xql"), "rwsr-xr-x"),
-sm:chmod(xs:anyURI($target || "/modules/ajax.xql"), "rwsr-xr-x"),
-sm:chmod(xs:anyURI($target || "/modules/regenerate.xql"), "rwsr-xr-x"),
-sm:chmod(xs:anyURI($target || "/modules/upload.xql"), "rwsr-xr-x"),
+sm:chmod(xs:anyURI($target || "/modules/lib/pdf.xql"), "rwsr-xr-x"),
+sm:chmod(xs:anyURI($target || "/modules/lib/get-epub.xql"), "rwsr-xr-x"),
+sm:chmod(xs:anyURI($target || "/modules/lib/ajax.xql"), "rwsr-xr-x"),
+sm:chmod(xs:anyURI($target || "/modules/lib/regenerate.xql"), "rwsr-xr-x"),
+sm:chmod(xs:anyURI($target || "/modules/lib/upload.xql"), "rwsr-xr-x"),
 
 (: LaTeX requires dba permissions to execute shell process :)
-sm:chmod(xs:anyURI($target || "/modules/latex.xql"), "rwxr-Sr-x"),
-sm:chgrp(xs:anyURI($target || "/modules/latex.xql"), "dba"),
+sm:chmod(xs:anyURI($target || "/modules/lib/latex.xql"), "rwxr-Sr-x"),
+sm:chgrp(xs:anyURI($target || "/modules/lib/latex.xql"), "dba"),
 
 local:generate-code($target)
 

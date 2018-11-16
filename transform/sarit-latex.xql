@@ -1,11 +1,11 @@
 (:~
 
     Transformation module generated from TEI ODD extensions for processing models.
-    ODD: /db/apps/sarit-pm/resources/odd/compiled/sarit.odd
+    ODD: /db/apps/sarit-pm/resources/odd/sarit.odd
  :)
 xquery version "3.1";
 
-module namespace model="http://www.tei-c.org/tei-simple/models/sarit.odd/latex";
+module namespace model="http://www.tei-c.org/pm/models/sarit/latex";
 
 declare default element namespace "http://www.tei-c.org/ns/1.0";
 
@@ -13,9 +13,9 @@ declare namespace xhtml='http://www.w3.org/1999/xhtml';
 
 declare namespace skos='http://www.w3.org/2004/02/skos/core#';
 
-import module namespace css="http://www.tei-c.org/tei-simple/xquery/css" at "xmldb:exist://embedded-eXist-server/db/apps/tei-simple/content/css.xql";
+import module namespace css="http://www.tei-c.org/tei-simple/xquery/css";
 
-import module namespace latex="http://www.tei-c.org/tei-simple/xquery/functions/latex" at "xmldb:exist://embedded-eXist-server/db/apps/tei-simple/content/latex-functions.xql";
+import module namespace latex="http://www.tei-c.org/tei-simple/xquery/functions/latex";
 
 import module namespace ext-latex="http://sarit.indology.info/teipm/latex" at "xmldb:exist:///db/apps/sarit-pm/modules/ext-latex.xql";
 
@@ -30,7 +30,7 @@ declare function model:transform($options as map(*), $input as node()*) {
         map:new(($options,
             map {
                 "output": ["latex","print"],
-                "odd": "/db/apps/sarit-pm/resources/odd/compiled/sarit.odd",
+                "odd": "/db/apps/sarit-pm/resources/odd/sarit.odd",
                 "apply": model:apply#2,
                 "apply-children": model:apply-children#3
             }
@@ -117,7 +117,7 @@ declare function model:apply($config as map(*), $input as node()*) {
                             else
                                 $config?apply($config, ./node())
                 case element(cit) return
-                    latex:cit($config, ., ("tei-cit", "citation"), .)
+                    latex:cit($config, ., ("tei-cit", "citation"), ., ())
                 case element(closer) return
                     latex:block($config, ., ("tei-closer"), .)
                 case element(corr) return
@@ -464,10 +464,10 @@ declare function model:apply($config as map(*), $input as node()*) {
 
                     else
                         (
-                            latex:block($config, ., ("tei-fileDesc1"), titleStmt),
-                            latex:block($config, ., ("tei-fileDesc2"), seriesStmt),
-                            latex:paragraph($config, ., ("tei-fileDesc3"), editionStmt),
-                            latex:block($config, ., ("tei-fileDesc5"), publicationStmt)
+                            latex:block($config, ., ("tei-fileDesc3"), titleStmt),
+                            latex:block($config, ., ("tei-fileDesc4"), seriesStmt),
+                            latex:paragraph($config, ., ("tei-fileDesc5"), editionStmt),
+                            latex:block($config, ., ("tei-fileDesc7"), publicationStmt)
                         )
 
                 case element(titleStmt) return
@@ -486,21 +486,21 @@ declare function model:apply($config as map(*), $input as node()*) {
                         if (parent::titleStmt/parent::fileDesc) then
                             (
                                 if (preceding-sibling::title) then
-                                    latex:text($config, ., ("tei-title1"), ' — ')
+                                    latex:text($config, ., ("tei-title2"), ' — ')
                                 else
                                     (),
-                                latex:inline($config, ., ("tei-title2"), .)
+                                latex:inline($config, ., ("tei-title3"), .)
                             )
 
                         else
                             if (not(@level) and parent::bibl) then
-                                latex:inline($config, ., ("tei-title2"), .)
+                                latex:inline($config, ., ("tei-title4"), .)
                             else
                                 if (@level='m' or not(@level)) then
                                     (
-                                        latex:inline($config, ., ("tei-title1"), .),
+                                        latex:inline($config, ., ("tei-title5"), .),
                                         if (ancestor::biblStruct or       ancestor::biblFull) then
-                                            latex:text($config, ., ("tei-title2"), ', ')
+                                            latex:text($config, ., ("tei-title6"), ', ')
                                         else
                                             ()
                                     )
@@ -508,9 +508,9 @@ declare function model:apply($config as map(*), $input as node()*) {
                                 else
                                     if (@level='s' or @level='j') then
                                         (
-                                            latex:inline($config, ., ("tei-title1"), .),
+                                            latex:inline($config, ., ("tei-title7"), .),
                                             if (following-sibling::* and     (ancestor::biblStruct  or     ancestor::biblFull)) then
-                                                latex:text($config, ., ("tei-title2"), ', ')
+                                                latex:text($config, ., ("tei-title8"), ', ')
                                             else
                                                 ()
                                         )
@@ -518,15 +518,15 @@ declare function model:apply($config as map(*), $input as node()*) {
                                     else
                                         if (@level='u' or @level='a') then
                                             (
-                                                latex:inline($config, ., ("tei-title1"), .),
+                                                latex:inline($config, ., ("tei-title9"), .),
                                                 if (following-sibling::* and     (ancestor::biblStruct  or     ancestor::biblFull)) then
-                                                    latex:text($config, ., ("tei-title2"), '. ')
+                                                    latex:text($config, ., ("tei-title10"), '. ')
                                                 else
                                                     ()
                                             )
 
                                         else
-                                            latex:inline($config, ., ("tei-title3"), .)
+                                            latex:inline($config, ., ("tei-title11"), .)
                 case element(titlePage) return
                     latex:block($config, ., css:get-rendition(., ("tei-titlePage")), .)
                 case element(titlePart) return

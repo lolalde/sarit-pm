@@ -27,9 +27,21 @@
         <script type="text/javascript">
             $(document).ready(function() {
                 $.material.init();
+                
+                $(document).keydown(function(ev) {
+                    switch (ev.which) {
+                        case 37:
+                            $(".nav-prev").first().click();
+                            break;
+                        case 39:
+                            $(".nav-next").first().click();
+                            break;
+                    }
+                });
             });
         </script>
         <script type="text/javascript" src="resources/scripts/app.js"/>
+        <script type="text/javascript" src="modules/transliterate/transliterate.js"/>
     </head>
     <body>
         <div data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content" data-template-using="body">
@@ -96,6 +108,9 @@
                                             <a class="btn btn-default" id="switch-view" data-template="pages:switch-view" title="Switch between page and division view">
                                                 <i class="material-icons">import_contacts</i>
                                             </a>
+                                        <a class="btn btn-default" id="view-transliteration-button" onclick="sarit.modules.transliterate.transliterate_file()" title="Transliterate the current content">
+                                                <i class="material-icons">invert_colors</i>
+                                            </a>                                             
                                         </div>
                                     </div>
                                 </div>

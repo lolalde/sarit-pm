@@ -13,8 +13,8 @@ import module namespace config="http://www.tei-c.org/tei-simple/config" at "conf
 import module namespace pm-config="http://www.tei-c.org/tei-simple/pm-config" at "pm-config.xql";
 import module namespace console="http://exist-db.org/xquery/console" at "java:org.exist.console.xquery.ConsoleModule";
 import module namespace process="http://exist-db.org/xquery/process" at "java:org.exist.xquery.modules.process.ProcessModule";
-import module namespace pmu="http://www.tei-c.org/tei-simple/xquery/util" at "/db/apps/tei-simple/content/util.xql";
-import module namespace odd="http://www.tei-c.org/tei-simple/odd2odd" at "/db/apps/tei-simple/content/odd2odd.xql";
+import module namespace pmu="http://www.tei-c.org/tei-simple/xquery/util" at "/db/apps/tei-publisher-lib/content/util.xql";
+import module namespace odd="http://www.tei-c.org/tei-simple/odd2odd" at "/db/apps/tei-publisher-lib/content/odd2odd.xql";
 import module namespace xslfo="http://exist-db.org/xquery/xslfo" at "java:org.exist.xquery.modules.xslfo.XSLFOModule";
 
 declare variable $local:WORKING_DIR := system:get-exist-home() || "/webapp";

@@ -5,7 +5,7 @@ module namespace pmf="http://sarit.indology.info/teipm/latex";
 declare namespace tei="http://www.tei-c.org/ns/1.0";
 declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
 
-import module namespace latex="http://www.tei-c.org/tei-simple/xquery/functions/latex" at "xmldb:exist:///db/apps/tei-simple/content/latex-functions.xql";
+import module namespace latex="http://www.tei-c.org/tei-simple/xquery/functions/latex" at "xmldb:exist:///db/apps/tei-publisher-lib/content/latex-functions.xql";
 
 declare function pmf:document($config as map(*), $node as element(), $class as xs:string+, $content) {
     let $odd := doc($config?odd)

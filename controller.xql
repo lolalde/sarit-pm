@@ -1,6 +1,7 @@
 xquery version "3.0";
 
 import module namespace login="http://exist-db.org/xquery/login" at "resource:org/exist/xquery/modules/persistentlogin/login.xql";
+import module namespace config="http://www.tei-c.org/tei-simple/config" at "modules/config.xqm";
 
 declare variable $exist:path external;
 declare variable $exist:resource external;
@@ -37,10 +38,10 @@ else if (contains($exist:path, "/components")) then
         <forward url="{$exist:controller}/components/{substring-after($exist:path, '/components/')}"/>
     </dispatch>
 
-else if (ends-with($exist:resource, ".xql")) then (
+else if (contains($exist:path, "/modules/")) then (
     login:set-user("org.exist.tei-simple", (), false()),
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-        <forward url="{$exist:controller}/modules/{$exist:resource}"/>
+        <forward url="{$exist:controller}/modules/{substring-after($exist:path, '/modules/')}"/>
         <cache-control cache="no"/>
     </dispatch>
 
@@ -65,8 +66,8 @@ else if (ends-with($exist:resource, ".xql")) then (
     return
         if (ends-with($exist:resource, ".epub")) then
             <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-                <forward url="{$exist:controller}/modules/get-epub.xql">
-                    <add-parameter name="id" value="{$id}"/>
+                <forward url="{$exist:controller}/modules/lib/get-epub.xql">
+                    <add-parameter name="id" value="{$id}.xml"/>
                 </forward>
                 <error-handler>
                     <forward url="{$exist:controller}/error-page.html" method="get"/>
@@ -75,8 +76,8 @@ else if (ends-with($exist:resource, ".xql")) then (
             </dispatch>
         else if (ends-with($exist:resource, ".tex")) then
             <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-                <forward url="{$exist:controller}/modules/latex.xql">
-                    <add-parameter name="id" value="{$id}"/>
+                <forward url="{$exist:controller}/modules/lib/latex.xql">
+                    <add-parameter name="id" value="{$id}.xml"/>
                 </forward>
                 <error-handler>
                     <forward url="{$exist:controller}/error-page.html" method="get"/>
@@ -85,7 +86,7 @@ else if (ends-with($exist:resource, ".xql")) then (
             </dispatch>
         else if (ends-with($exist:resource, ".pdf")) then
             <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-                <forward url="{$exist:controller}/modules/pdf.xql">
+                <forward url="{$exist:controller}/modules/lib/pdf.xql">
                     <add-parameter name="doc" value="{$id}.xml"/>
                 </forward>
                 <error-handler>

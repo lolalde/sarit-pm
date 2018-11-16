@@ -1,4 +1,4 @@
-import module namespace m='http://www.tei-c.org/tei-simple/models/sarit.odd/fo' at '/db/apps/sarit-pm/transform/sarit-print.xql';
+import module namespace m='http://www.tei-c.org/pm/models/sarit/fo' at '/db/apps/sarit-pm/transform/sarit-print.xql';
 
 declare variable $xml external;
 

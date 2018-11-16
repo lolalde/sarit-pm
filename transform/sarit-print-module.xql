@@ -1,6 +1,6 @@
-module namespace pml='http://www.tei-c.org/tei-simple/models/sarit.odd/fo/module';
+module namespace pml='http://www.tei-c.org/pm/models/sarit/fo/module';
 
-import module namespace m='http://www.tei-c.org/tei-simple/models/sarit.odd/fo' at '/db/apps/sarit-pm/transform/sarit-print.xql';
+import module namespace m='http://www.tei-c.org/pm/models/sarit/fo' at '/db/apps/sarit-pm/transform/sarit-print.xql';
 
 (: Generated library module to be directly imported into code which
  : needs to transform TEI nodes using the ODD this module is based on.

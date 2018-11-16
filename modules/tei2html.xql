@@ -1084,7 +1084,7 @@ declare function tei-to-html:editionStmt($node as element(tei:editionStmt), $opt
             </div>
 };
 
-declare function tei-to-html:serialize-list($sequence as item()+) as xs:string {       
+declare function tei-to-html:serialize-list($sequence as item()*) as xs:string {       
     let $sequence-count := count($sequence)
     return
     if ($sequence-count eq 1)

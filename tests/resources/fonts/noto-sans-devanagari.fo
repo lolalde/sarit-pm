@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
+	<fo:layout-master-set>
+		<fo:simple-page-master master-name="normal"
+			page-width="8.5in" page-height="11in" margin="1in">
+			<fo:region-body />
+		</fo:simple-page-master>
+	</fo:layout-master-set>
+	<fo:page-sequence master-reference="normal">
+		<fo:flow flow-name="xsl-region-body">
+			<fo:block-container padding-after="10pt">
+				<fo:block font-size="14pt" font-family="serif">Noto Sans Devanagari
+				</fo:block>
+				<fo:block font-size="14pt" font-family="serif">actual result
+				</fo:block>
+				<fo:block font-size="14pt" font-family="Noto Sans Devanagari"
+					script="dev2">कारणत्त्वङ्गवाश्वादीनमपीति चेत् युक्तम्</fo:block>
+				<fo:block font-size="14pt" font-family="serif">intended result
+				</fo:block>					
+				<fo:block>
+					<fo:inline>
+						<fo:external-graphic src="/home/claudius/workspaces/repositories/git/sarit-pm/tests/resources/fonts/noto-devanagari-font.png" />
+					</fo:inline>
+				</fo:block>
+			</fo:block-container>
+		</fo:flow>
+	</fo:page-sequence>
+</fo:root>

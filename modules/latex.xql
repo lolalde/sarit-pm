@@ -10,8 +10,8 @@ declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
 
 import module namespace config="http://www.tei-c.org/tei-simple/config" at "config.xqm";
 import module namespace pm-config="http://www.tei-c.org/tei-simple/pm-config" at "pm-config.xql";
-import module namespace pmu="http://www.tei-c.org/tei-simple/xquery/util" at "/db/apps/tei-simple/content/util.xql";
-import module namespace odd="http://www.tei-c.org/tei-simple/odd2odd" at "/db/apps/tei-simple/content/odd2odd.xql";
+import module namespace pmu="http://www.tei-c.org/tei-simple/xquery/util" at "/db/apps/tei-publisher-lib/content/util.xql";
+import module namespace odd="http://www.tei-c.org/tei-simple/odd2odd" at "/db/apps/tei-publisher-lib/content/odd2odd.xql";
 import module namespace process="http://exist-db.org/xquery/process" at "java:org.exist.xquery.modules.process.ProcessModule";
 
 declare namespace tei="http://www.tei-c.org/ns/1.0";

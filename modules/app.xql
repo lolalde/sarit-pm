@@ -1,27 +1,32 @@
 xquery version "3.0";
 
-module namespace app="http://www.tei-c.org/tei-simple/templates";
+module namespace app = "http://www.tei-c.org/tei-simple/templates";
 
 import module namespace templates="http://exist-db.org/xquery/templates";
 import module namespace config="http://www.tei-c.org/tei-simple/config" at "config.xqm";
 import module namespace pm-config="http://www.tei-c.org/tei-simple/pm-config" at "pm-config.xql";
 import module namespace kwic="http://exist-db.org/xquery/kwic" at "resource:org/exist/xquery/lib/kwic.xql";
-import module namespace pages="http://www.tei-c.org/tei-simple/pages" at "pages.xql";
+import module namespace pages="http://www.tei-c.org/tei-simple/pages" at "lib/pages.xql";
 import module namespace tei-to-html="http://exist-db.org/xquery/app/tei2html" at "tei2html.xql";
-import module namespace sarit="http://exist-db.org/xquery/sarit";
 import module namespace metadata = "http://exist-db.org/ns/sarit/metadata/" at "metadata.xqm";
+import module namespace nav="http://www.tei-c.org/tei-simple/navigation" at "navigation.xql";
+import module namespace tpu="http://www.tei-c.org/tei-publisher/util" at "lib/util.xql";
 
 import module namespace console="http://exist-db.org/xquery/console" at "java:org.exist.console.xquery.ConsoleModule";
-
 
 declare namespace expath="http://expath.org/ns/pkg";
 declare namespace tei="http://www.tei-c.org/ns/1.0";
 
-declare variable $app:devnag2roman := doc($config:app-root || "/modules/transliteration-rules.xml")//*[@id = "devnag2roman"];
-declare variable $app:roman2devnag := doc($config:app-root || "/modules/transliteration-rules.xml")//*[@id = "roman2devnag"];
-declare variable $app:roman2devnag-search := doc($config:app-root || "/modules/transliteration-rules.xml")//*[@id = "roman2devnag-search"];
 declare variable $app:expand := doc($config:app-root || "/modules/transliteration-rules.xml")//*[@id = "expand"];
 declare variable $app:iast-char-repertoire-negation := '[^aābcdḍeĕghḥiïījklḷḹmṁṃnñṅṇoŏprṛṝsśṣtṭuüūvy0-9\s]';
+declare variable $app:query-options :=
+    <options>
+        <default-operator>and</default-operator>
+        <leading-wildcard>yes</leading-wildcard>
+        <filter-rewrite>yes</filter-rewrite>
+        <lowercase-expanded-terms>no</lowercase-expanded-terms>
+    </options>
+;
 
 declare
     %templates:wrap
@@ -234,7 +239,8 @@ declare function app:statistics($node as node(), $model as map(*)) {
         "SARIT currently contains "|| $metadata:metadata/metadata:number-of-xml-works ||" text files (TEI-XML) of " || $metadata:metadata/metadata:size-of-xml-works || " XML (" || $metadata:metadata/metadata:number-of-pdf-pages || " pages in PDF format)."
 };
 
-declare %public function app:work-author($work as element(tei:TEI)?) {
+declare function app:work-author($node as node(), $model as map(*)) {
+    let $work := $model("work")/ancestor-or-self::tei:TEI
     let $work-commentators := $work/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:author[@role eq 'commentator']/text()
     let $work-authors := $work/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:author[@role eq 'base-author']/text()
     let $work-authors := if ($work-authors) then $work-authors else $work/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:author/text()
@@ -244,8 +250,7 @@ declare %public function app:work-author($work as element(tei:TEI)?) {
         $work-authors    
 };
 
-declare function app:work-author($node as node(), $model as map(*)) {
-    let $work := $model("work")/ancestor-or-self::tei:TEI
+declare %public function app:work-author($work as element(tei:TEI)?) {
     let $work-commentators := $work/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:author[@role eq 'commentator']/text()
     let $work-authors := $work/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:author[@role eq 'base-author']/text()
     let $work-authors := if ($work-authors) then $work-authors else $work/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:author/text()
@@ -376,60 +381,37 @@ declare function app:work-authors($node as node(), $model as map(*)) {
 : @author Jens Østergaard Petersen
 : @param $node
 : @param $model
-: @param $query The query string. This string is transformed into a <query> element containing one or two <bool> elements in a Lucene query and it is transformed into a sequence of one or two query strings in an ngram query. The first <bool> and the first string contain the query as input and the second the query as transliterated into Devanagari or IAST as determined by $query-scripts. One <bool> and one query string may be empty.
-: @param $index The index against which the query is to be performed, as the string "ngram" or "lucene".
+: @param $query The query string.
 : @param $tei-target A sequence of one or more targets within a TEI document, the tei:teiHeader or tei:text.
 : @param $work-authors A sequence of the string "all" or of the xml:ids of the documents associated with the selected authors.
-: @param $query-scripts A sequence of the string "all" or of the values "sa-Latn" or "sa-Deva", indicating whether or not the user wishes to transliterate the query string.
 : @param $target-texts A sequence of the string "all" or of the xml:ids of the documents selected.
 
 : @return The function returns a map containing the $hits, the $query, and the $query-scope. The search results are output through the nested templates, app:hit-count, app:paginate, and app:show-hits.
 :)
 (:template function in search.html:)
 declare
-    %templates:default("index", "ngram")
     %templates:default("tei-target", "tei-text")
     %templates:default("query-scope", "narrow")
     %templates:default("work-authors", "all")
-    %templates:default("query-scripts", "all")
     %templates:default("target-texts", "all")
     %templates:default("bool", "new")
-function app:query($node as node()*, $model as map(*), $query as xs:string?, $index as xs:string, $tei-target as xs:string+, $query-scope as xs:string, $work-authors as xs:string+, $query-scripts as xs:string, $target-texts as xs:string+, $bool as xs:string) as map(*) {
-    (:remove any ZERO WIDTH NON-JOINER from the query string:)
-    let $query := lower-case(translate(normalize-space($query), "&#8204;", ""))
-    (:based on which index the user wants to query against, the query string is dispatchted to separate functions. Both return empty if there is no query string.:)
-    let $queries := app:expand-query($query, $query-scripts)
-    (:both lucene queries and ngram queries are passed around as sequences of strings, but after expansion lucene queries have to be wrapped in slashes to trigger regex mode:)
-    let $queries :=
-        if ($index eq 'ngram')
-        then $queries
-        else
-            for $query in $queries
-            return
-                if (contains($query, '[') and not(starts-with(normalize-space($query), "/") and ends-with(normalize-space($query), "/")))
-                then "/" || $query || "/"
-                else $query
-    (:this joins the latest lucene query with OR if it has been expanded - this OR does not have anything to do with boolean searches:)
-    let $queries :=
-        if ($index eq 'ngram')
-        then $queries
-        else string-join($queries, ' OR ')
-    return
+function app:query($node as node()*, $model as map(*), $query as xs:string?, $tei-target as xs:string+, $query-scope as xs:string, $work-authors as xs:string+, $target-texts as xs:string+, $bool as xs:string) as map(*) {
         (:If there is no query string, fill up the map with existing values:)
-        if (empty($queries))
+        if (empty($query))
         then
             let $hits := session:get-attribute("apps.sarit.hits")
+            
             return
                 map {
                     "hits" : $hits,
                     "hitCount": count($hits),
-                    "index" : session:get-attribute("apps.sarit.index"),
-                    "ngram-query" : session:get-attribute("apps.sarit.ngram-query"),
                     "lucene-query" : session:get-attribute("apps.sarit.lucene-query"),
                     "scope" : $query-scope (:NB: what about the other arguments?:)
                 }
         else
             (:Otherwise, perform the query.:)
+            let $queries := $query
+            
             (:First, which documents to query against has to be found out. Users can either make no selections in the list of documents, passing the value "all", or they can select individual document, passing a sequence of their xml:ids in $target-texts. Users can also select documents based on their authors. If no specific authors are selected, the value "all" is passed in $work-authors, but if selections have been made, a sequence of their xml:ids is passed. :)
             (:$target-texts will either have the value 'all' or contain a sequence of document xml:ids.:)
             let $target-texts :=
@@ -480,271 +462,87 @@ function app:query($node as node()*, $model as map(*), $query as xs:string?, $in
                             if ($tei-target = 'tei-header')
                             then collection($config:data-root)//tei:TEI[@xml:id = $target-texts]/tei:teiHeader
                             else ()
-            (: Here the actual query commences. This is split into two parts, the first for a Lucene query and the second for an ngram query. :)
-            (:The query passed to a Lucene query in ft:query is a string containing one or two queries joined by an OR. The queries contain the original query and the transliterated query, as indicated by the user in $query-scripts.:)
+            (: Here the actual query commences. :)
             let $hits :=
-                if ($index eq 'lucene')
+                (:If the $query-scope is narrow, query the elements immediately below the lowest div in tei:text and the four major element below tei:teiHeader.:)
+                if ($query-scope eq 'narrow')
                 then
-                    (:If the $query-scope is narrow, query the elements immediately below the lowest div in tei:text and the four major element below tei:teiHeader.:)
-                    if ($query-scope eq 'narrow')
-                    then
-                        for $hit in
-                            (:If both tei-text and tei-header is queried.:)
-                            if (count($tei-target) eq 2)
-                            then
-                                (
-                                $context//tei:p[ft:query(., $queries)],
-                                $context//tei:head[ft:query(., $queries)],
-                                $context//tei:lg[ft:query(., $queries)],
-                                $context//tei:trailer[ft:query(., $queries)],
-                                $context//tei:note[ft:query(., $queries)],
-                                $context//tei:list[ft:query(., $queries)],
-                                $context//tei:l[not(local-name(./..) eq 'lg')][ft:query(., $queries)],
-                                $context//tei:quote[ft:query(., $queries)],
-                                $context//tei:table[ft:query(., $queries)],
-                                $context//tei:listApp[ft:query(., $queries)],
-                                $context//tei:listBibl[ft:query(., $queries)],
-                                $context//tei:cit[ft:query(., $queries)],
-                                $context//tei:label[ft:query(., $queries)],
-                                $context//tei:encodingDesc[ft:query(., $queries)],
-                                $context//tei:fileDesc[ft:query(., $queries)],
-                                $context//tei:profileDesc[ft:query(., $queries)],
-                                $context//tei:revisionDesc[ft:query(., $queries)]
-                                )
-                            else
-                                if ($tei-target = 'tei-text')
-                                then
-                                    (
-                                    $context//tei:p[ft:query(., $queries)],
-                                    $context//tei:head[ft:query(., $queries)],
-                                    $context//tei:lg[ft:query(., $queries)],
-                                    $context//tei:trailer[ft:query(., $queries)],
-                                    $context//tei:note[ft:query(., $queries)],
-                                    $context//tei:list[ft:query(., $queries)],
-                                    $context//tei:l[not(local-name(./..) eq 'lg')][ft:query(., $queries)],
-                                    $context//tei:quote[ft:query(., $queries)],
-                                    $context//tei:table[ft:query(., $queries)],
-                                    $context//tei:listApp[ft:query(., $queries)],
-                                    $context//tei:listBibl[ft:query(., $queries)],
-                                    $context//tei:cit[ft:query(., $queries)],
-                                    $context//tei:label[ft:query(., $queries)]
-                                    )
-                                else
-                                    if ($tei-target = 'tei-header')
-                                    then
-                                        (
-                                        $context//tei:encodingDesc[ft:query(., $queries)],
-                                        $context//tei:fileDesc[ft:query(., $queries)],
-                                        $context//tei:profileDesc[ft:query(., $queries)],
-                                        $context//tei:revisionDesc[ft:query(., $queries)]
-                                        )
-                                    else ()
-                        order by ft:score($hit) descending
-                        return $hit
-                    (:If the $query-scope is broad, query the lowest div in tei:text and tei:teiHeader.:)
-                    else
-                        for $hit in
-                            if (count($tei-target) eq 2)
-                            then
-                                (
-                                $context//tei:div[not(tei:div)][ft:query(., $queries)],
-                                $context/descendant-or-self::tei:teiHeader[ft:query(., $queries)](:NB: Can divs occur in the header? If so, they have to be removed here5:)
-                                )
-                            else
-                                if ($tei-target = 'tei-text')
-                                then
-                                    (
-                                    $context//tei:div[not(tei:div)][ft:query(., $queries)]
-                                    )
-                                else
-                                    if ($tei-target = 'tei-header')
-                                    then
-                                        $context/descendant-or-self::tei:teiHeader[ft:query(., $queries)]
-                                    else ()
-                        order by ft:score($hit) descending
-                        return $hit
-                (: The part with the ngram query mirrors that for the Lucene query, but here $queries contains a sequence of one or two non-empty strings containing the original query and the transliterated query, as indicated by the user in $query-scripts:)
-                else
-                    if ($query-scope eq 'narrow' and count($tei-target) eq 2)
-                    then
-                        for $hit in
-                            (
-                            (:Only query if there is a value in the first item.:)
-                            if ($queries[1])
-                            then (
-                                $context//tei:p[ngram:wildcard-contains(., $queries[1])],
-                                $context//tei:head[ngram:wildcard-contains(., $queries[1])],
-                                $context//tei:lg[ngram:wildcard-contains(., $queries[1])],
-                                $context//tei:trailer[ngram:wildcard-contains(., $queries[1])],
-                                $context//tei:note[ngram:wildcard-contains(., $queries[1])],
-                                $context//tei:list[ngram:wildcard-contains(., $queries[1])],
-                                $context//tei:l[not(local-name(./..) eq 'lg')][ngram:wildcard-contains(., $queries[1])],
-                                $context//tei:quote[ngram:wildcard-contains(., $queries[1])],
-                                $context//tei:table[ngram:wildcard-contains(., $queries[1])],
-                                $context//tei:listApp[ngram:wildcard-contains(., $queries[1])],
-                                $context//tei:listBibl[ngram:wildcard-contains(., $queries[1])],
-                                $context//tei:cit[ngram:wildcard-contains(., $queries[1])],
-                                $context//tei:label[ngram:wildcard-contains(., $queries[1])],
-                                $context//tei:encodingDesc[ngram:wildcard-contains(., $queries[1])],
-                                $context//tei:fileDesc[ngram:wildcard-contains(., $queries[1])],
-                                $context//tei:profileDesc[ngram:wildcard-contains(., $queries[1])],
-                                $context//tei:revisionDesc[ngram:wildcard-contains(., $queries[1])]
-                                )
-                            else ()
-                            ,
-                            (:Only query if there is a value in the second item.:)
-                            if ($queries[2])
-                            then (
-                                $context//tei:p[ngram:wildcard-contains(., $queries[2])],
-                                $context//tei:head[ngram:wildcard-contains(., $queries[2])],
-                                $context//tei:lg[ngram:wildcard-contains(., $queries[2])],
-                                $context//tei:trailer[ngram:wildcard-contains(., $queries[2])],
-                                $context//tei:note[ngram:wildcard-contains(., $queries[2])],
-                                $context//tei:list[ngram:wildcard-contains(., $queries[2])],
-                                $context//tei:l[not(local-name(./..) eq 'lg')][ngram:wildcard-contains(., $queries[2])],
-                                $context//tei:quote[ngram:wildcard-contains(., $queries[2])],
-                                $context//tei:table[ngram:wildcard-contains(., $queries[2])],
-                                $context//tei:listApp[ngram:wildcard-contains(., $queries[2])],
-                                $context//tei:listBibl[ngram:wildcard-contains(., $queries[2])],
-                                $context//tei:cit[ngram:wildcard-contains(., $queries[2])],
-                                $context//tei:label[ngram:wildcard-contains(., $queries[2])],
-                                $context//tei:encodingDesc[ngram:wildcard-contains(., $queries[2])],
-                                $context//tei:fileDesc[ngram:wildcard-contains(., $queries[2])],
-                                $context//tei:profileDesc[ngram:wildcard-contains(., $queries[2])],
-                                $context//tei:revisionDesc[ngram:wildcard-contains(., $queries[2])]
-                                )
-                            else ()
-                            )
-                        order by $hit/ancestor-or-self::tei:TEI/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:title[1] ascending
-                        return $hit
-                    else
-                        if ($query-scope eq 'narrow' and $tei-target eq 'tei-text')
+                    for $hit in
+                        (:If both tei-text and tei-header is queried.:)
+                        if (count($tei-target) eq 2)
                         then
-                            for $hit in
+                            (
+                            $context//tei:p[ft:query(., $queries, $app:query-options)],
+                            $context//tei:head[ft:query(., $queries, $app:query-options)],
+                            $context//tei:lg[ft:query(., $queries, $app:query-options)],
+                            $context//tei:trailer[ft:query(., $queries, $app:query-options)],
+                            $context//tei:note[ft:query(., $queries, $app:query-options)],
+                            $context//tei:list[ft:query(., $queries, $app:query-options)],
+                            $context//tei:l[not(local-name(./..) eq 'lg')][ft:query(., $queries, $app:query-options)],
+                            $context//tei:quote[ft:query(., $queries, $app:query-options)],
+                            $context//tei:table[ft:query(., $queries, $app:query-options)],
+                            $context//tei:listApp[ft:query(., $queries, $app:query-options)],
+                            $context//tei:listBibl[ft:query(., $queries, $app:query-options)],
+                            $context//tei:cit[ft:query(., $queries, $app:query-options)],
+                            $context//tei:label[ft:query(., $queries, $app:query-options)],
+                            $context//tei:encodingDesc[ft:query(., $queries, $app:query-options)],
+                            $context//tei:fileDesc[ft:query(., $queries, $app:query-options)],
+                            $context//tei:profileDesc[ft:query(., $queries, $app:query-options)],
+                            $context//tei:revisionDesc[ft:query(., $queries, $app:query-options)]
+                            )
+                        else
+                            if ($tei-target = 'tei-text')
+                            then
                                 (
-                                if ($queries[1])
-                                then (
-                                    $context//tei:p[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:head[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:lg[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:trailer[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:note[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:list[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:l[not(local-name(./..) eq 'lg')][ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:quote[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:table[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:listApp[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:listBibl[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:cit[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:label[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:encodingDesc[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:fileDesc[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:profileDesc[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:revisionDesc[ngram:wildcard-contains(., $queries[1])]
+                                $context//tei:p[ft:query(., $queries, $app:query-options)],
+                                $context//tei:head[ft:query(., $queries, $app:query-options)],
+                                $context//tei:lg[ft:query(., $queries, $app:query-options)],
+                                $context//tei:trailer[ft:query(., $queries, $app:query-options)],
+                                $context//tei:note[ft:query(., $queries, $app:query-options)],
+                                $context//tei:list[ft:query(., $queries, $app:query-options)],
+                                $context//tei:l[not(local-name(./..) eq 'lg')][ft:query(., $queries, $app:query-options)],
+                                $context//tei:quote[ft:query(., $queries, $app:query-options)],
+                                $context//tei:table[ft:query(., $queries, $app:query-options)],
+                                $context//tei:listApp[ft:query(., $queries, $app:query-options)],
+                                $context//tei:listBibl[ft:query(., $queries, $app:query-options)],
+                                $context//tei:cit[ft:query(., $queries, $app:query-options)],
+                                $context//tei:label[ft:query(., $queries, $app:query-options)]
+                                )
+                            else
+                                if ($tei-target = 'tei-header')
+                                then
+                                    (
+                                    $context//tei:encodingDesc[ft:query(., $queries, $app:query-options)],
+                                    $context//tei:fileDesc[ft:query(., $queries, $app:query-options)],
+                                    $context//tei:profileDesc[ft:query(., $queries, $app:query-options)],
+                                    $context//tei:revisionDesc[ft:query(., $queries, $app:query-options)]
                                     )
                                 else ()
-                                ,
-                                if ($queries[2])
-                                then (
-                                    $context//tei:p[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:head[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:lg[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:trailer[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:note[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:list[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:l[not(local-name(./..) eq 'lg')][ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:quote[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:table[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:listApp[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:listBibl[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:cit[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:label[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:encodingDesc[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:fileDesc[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:profileDesc[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:revisionDesc[ngram:wildcard-contains(., $queries[2])]
-                                )
-                        else ()
-                        )
-                            order by $hit/ancestor-or-self::tei:TEI/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:title[1] ascending
-                            return $hit
+                    order by ft:score($hit) descending
+                    return $hit
+                (:If the $query-scope is broad, query the lowest div in tei:text and tei:teiHeader.:)
+                else
+                    for $hit in
+                        if (count($tei-target) eq 2)
+                        then
+                            (
+                            $context//tei:div[not(tei:div)][ft:query(., $queries, $app:query-options)],
+                            $context/descendant-or-self::tei:teiHeader[ft:query(., $queries, $app:query-options)](:NB: Can divs occur in the header? If so, they have to be removed here5:)
+                            )
                         else
-                            if ($query-scope eq 'narrow' and $tei-target eq 'tei-header')
+                            if ($tei-target = 'tei-text')
                             then
-                            for $hit in
                                 (
-                                if ($queries[1])
-                                then (
-                                    $context//tei:encodingDesc[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:fileDesc[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:profileDesc[ngram:wildcard-contains(., $queries[1])],
-                                    $context//tei:revisionDesc[ngram:wildcard-contains(., $queries[1])]
-                                ) else ()
-                                ,
-                                if ($queries[2])
-                                then (
-                                    $context//tei:encodingDesc[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:fileDesc[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:profileDesc[ngram:wildcard-contains(., $queries[2])],
-                                    $context//tei:revisionDesc[ngram:wildcard-contains(., $queries[2])]
-                                ) else ()
+                                $context//tei:div[not(tei:div)][ft:query(., $queries, $app:query-options)]
                                 )
-                            order by $hit/ancestor-or-self::tei:TEI/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:title[1] ascending
-                            return $hit
                             else
-                                if ($query-scope eq 'broad' and count($tei-target) eq 2)
+                                if ($tei-target = 'tei-header')
                                 then
-                                    for $hit in
-                                        (
-                                        if ($queries[1])
-                                        then
-                                            (
-                                            $context//tei:div[not(tei:div)][ngram:wildcard-contains(., $queries[1])],
-                                            $context//tei:teiHeader[ngram:wildcard-contains(., $queries[1])]
-                                            )
-                                        else ()
-                                        ,
-                                        if ($queries[2])
-                                        then (
-                                            $context//tei:div[not(tei:div)][ngram:wildcard-contains(., $queries[2])],
-                                            $context//tei:teiHeader[ngram:wildcard-contains(., $queries[2])]
-                                            )
-                                        else ()
-                                        )
-                                    order by $hit/ancestor-or-self::tei:TEI/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:title[1] ascending
-                                    return $hit
-                                else
-                                    if ($query-scope eq 'broad' and $tei-target eq 'tei-text')
-                                    then
-                                        for $hit in (
-                                            if ($queries[1])
-                                            then
-                                                $context//tei:div[not(tei:div)][ngram:wildcard-contains(., $queries[1])]
-                                            else ()
-                                            ,
-                                            if ($queries[2])
-                                            then
-                                                $context//tei:div[not(tei:div)][ngram:wildcard-contains(., $queries[2])]
-                                            else ()
-                                        )
-                                        order by $hit/ancestor-or-self::tei:TEI/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:title[1] ascending
-                                        return $hit
-                                    else
-                                        if ($query-scope eq 'broad' and $tei-target eq 'tei-header')
-                                        then
-                                        for $hit in (
-                                            if ($queries[1]) then
-                                                $context//tei:teiHeader[ngram:wildcard-contains(., $queries[1])]
-                                            else ()
-                                            ,
-                                            if ($queries[2]) then
-                                                $context//tei:teiHeader[ngram:wildcard-contains(., $queries[2])]
-                                            else
-                                                ()
-                                            )
-                                            order by $hit/ancestor-or-self::tei:TEI/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:title[1] ascending
-                                            return $hit
-                                        else ()
+                                    $context/descendant-or-self::tei:teiHeader[ft:query(., $queries, $app:query-options)]
+                                else ()
+                    order by ft:score($hit) descending
+                    return $hit
+
             let $hits :=
                 if ($bool eq 'or')
                 then session:get-attribute("apps.sarit.hits") union $hits
@@ -756,123 +554,40 @@ function app:query($node as node()*, $model as map(*), $query as xs:string?, $in
                         then session:get-attribute("apps.sarit.hits") except $hits
                         else $hits
             (:gather up previous searches for match highlighting.:)
-            (:NB: lucene-queries may have slashes added, so they may be different from ngram-queries:)
-            let $ngram-query :=
-                if ($index eq 'ngram')
-                then
-                    if ($bool eq 'new')
-                    then $queries
-                    else
-                        if ($bool = ('or', 'and'))
-                        then ($queries, session:get-attribute("apps.sarit.ngram-query"))
-                        else
-                            if ($bool eq 'not')
-                            then session:get-attribute("apps.sarit.ngram-query")
-                            else ''
-                else ''
             let $lucene-query :=
-                if ($index eq 'lucene')
-                then
-                    if ($bool eq 'new')
-                    then $queries
+                if ($bool eq 'new')
+                then $queries
+                else
+                    if ($bool = ('or', 'and'))
+                    then ($queries, session:get-attribute("apps.sarit.lucene-query"))
                     else
-                        if ($bool = ('or', 'and'))
-                        then ($queries, session:get-attribute("apps.sarit.lucene-query"))
-                        else
-                            if ($bool eq 'not')
-                            then session:get-attribute("apps.sarit.lucene-query")
-                            else ''
-                else ''
+                        if ($bool eq 'not')
+                        then session:get-attribute("apps.sarit.lucene-query")
+                        else ''
+    
             let $store := (
                 session:set-attribute("apps.sarit.hits", $hits),
-                session:set-attribute("apps.sarit.index", $index),
-                session:set-attribute("apps.sarit.ngram-query", $ngram-query),
                 session:set-attribute("apps.sarit.lucene-query", $lucene-query),
                 session:set-attribute("apps.sarit.scope", $query-scope),
                 session:set-attribute("apps.sarit.bool", $bool)
                 )
+            
             return
                 (: The hits are not returned directly, but processed by the nested templates :)
                 map {
                     "hits" : $hits,
                     "hitCount": count($hits),
-                    "ngram-query" : $ngram-query,
                     "lucene-query" : $lucene-query
                 }
 };
 
-(:~
-    app:expand-query transliterates the query string from Devanagari to IAST transcription and/or from IAST transcription to Devanagari,
-    if the user has indicated that this is wanted in $query-scripts.
-:)
-declare %private function app:expand-query($query as xs:string*, $query-scripts as xs:string?) as xs:string* {
-    if ($query)
-    then (
-        sarit:create("devnag2roman", $app:devnag2roman/string()),
-        sarit:create("roman2devnag", $app:roman2devnag-search/string()),
-        sarit:create("expand", $app:expand/string()),
-        (:if there is input exclusively in IAST romanization:)
-        if (not(matches($query, $app:iast-char-repertoire-negation)))
-        then
-            (:if the user wants to search in Devanagri, then transliterate and discard the original query:)
-            if ($query-scripts eq "sa-Deva")
-            then
-                sarit:transliterate("expand",translate(sarit:transliterate("roman2devnag", $query), "&#8204;", ""))
-            else
-                (:if the user wants to search in both IAST and Devanagri, then transliterate the original query and keep it:)
-                if ($query-scripts eq "all")
-                then
-                    ($query, sarit:transliterate("expand",translate(sarit:transliterate("roman2devnag", $query), "&#8204;", "")))
-                else
-                    (:if the user wants to search in romanization, then do not transliterate but keep original query:)
-                    if ($query-scripts eq "sa-Latn")
-                    then
-                        $query
-                    (:this exhausts all options for IAST input strings:)
-                    else ''
-        else
-            (:if there is input exclusively in Devanagari:)
-            if (empty(string-to-codepoints($query)[not(. = (9-13, 32, 133, 160, 2304 to 2431, 43232 to 43259, 7376 to 7412))]))
-            then
-                (:if the user wants to search in IAST, then transliterate the original query but delete it:)
-                if ($query-scripts eq "sa-Latn")
-                then
-                    sarit:transliterate("devnag2roman", $query)
-                else
-                    (:if the user wants to search in both Devanagri and IAST, then transliterate the original query and keep it:)
-                    if ($query-scripts eq "all")
-                    then
-                        (sarit:transliterate("expand",$query), sarit:transliterate("devnag2roman", $query))
-                    else
-                        (:if the user wants to search in Devanagri, then do not transliterate original query but keep it:)
-                        if ($query-scripts eq "sa-Deva")
-                        then
-                            sarit:transliterate("expand", $query)
-                        else ''
-            (:there should only be two options: IAST and Devanagari input. If the query is not pure IAST and is not pure Devanagari, then do not (try to) transliterate the original query but keep it as it is.:)
-            else
-                $query
-    )
-    else ()
-};
-
-declare function app:expand-hits($divs as element()*, $index as xs:string) {
-    let $queries :=
-        switch($index)
-            case "ngram" return
-                session:get-attribute("apps.sarit.ngram-query")
-            default return
-                session:get-attribute("apps.sarit.lucene-query")
+declare function app:expand-hits($divs as element()*) {
+    let $queries := session:get-attribute("apps.sarit.lucene-query")
+                
     for $div in $divs
-    for $query in distinct-values($queries)
-    let $result := 
-        switch ($index)
-            case "ngram" return
-                $div[ngram:wildcard-contains(., $query)]
-            default return
-                $div[ft:query(., $query)]
-    return
-        util:expand($result, "add-exist-id=all")
+    let $result := $div[ft:query(., session:get-attribute("apps.sarit.lucene-query"), $app:query-options)]
+    
+    return util:expand($result, "add-exist-id=all")
 };
 
 (:~
@@ -882,16 +597,15 @@ declare
     %templates:wrap
     %templates:default("start", 1)
     %templates:default("per-page", 10)
-    %templates:default("index", "ngram")
-function app:show-hits($node as node()*, $model as map(*), $start as xs:integer, $per-page as xs:integer, $view as xs:string?,
-    $index as xs:string) {
-    let $view := if ($view) then $view else $config:default-view
+function app:show-hits($node as node()*, $model as map(*), $start as xs:integer, $per-page as xs:integer, $view as xs:string?) {
     for $hit at $p in subsequence($model("hits"), $start, $per-page)
+    let $work := $hit/ancestor::tei:TEI
     let $parent := $hit/ancestor-or-self::tei:div[1]
-    let $parent := if ($parent) then $parent else $hit/ancestor-or-self::tei:teiHeader
-    let $parent := if ($parent) then $parent else root($hit)
-    let $div := app:get-current($parent)
+    let $parent := ($hit/self::tei:body, $hit/ancestor-or-self::tei:div[1])[1]
+    let $parent := ($parent, $hit/ancestor-or-self::tei:teiHeader, $hit)[1]
     let $parent-id := util:document-name($parent) || "?root=" || util:node-id($parent)
+    let $config := tpu:parse-pi(root($work), $view)
+    let $div := app:get-current($config, $parent)
     let $div-id := util:document-name($div) || "?root=" || util:node-id($div)
     (:if the nearest div does not have an xml:id, find the nearest element with an xml:id and use it:)
     (:is this necessary - can't we just use the nearest ancestor?:)
@@ -899,10 +613,9 @@ function app:show-hits($node as node()*, $model as map(*), $start as xs:integer,
 (:        if ($div-id) :)
 (:        then $div-id :)
 (:        else ($hit/ancestor-or-self::*[@xml:id]/@xml:id)[1]/string():)
-    (:if it is not a div, it will not have a head:)
-    let $div-head := $parent/tei:head/text()
+    (:if it is not a div, it will not have a head --> at least mention this :)
+    let $div-head := if ($parent/tei:head) then $parent/tei:head//text() else "[[Untitled section]]"
     (:TODO: what if the hit is in the header?:)
-    let $work := $hit/ancestor::tei:TEI
     let $work-title := app:work-title($work)
     (:the work always has xml:id.:)
     let $work-id := $work/@xml:id/string()
@@ -923,35 +636,22 @@ function app:show-hits($node as node()*, $model as map(*), $start as xs:integer,
         for $match in subsequence($expanded//exist:match, 1, 5)
         let $matchId := $match/../@exist:id
         let $docLink :=
-            if ($view = "page") then
+            if ($config?view = "page") then
+                let $edition := config:edition($div)
                 let $contextNode := util:node-by-id($div, $matchId)
-                let $page := $contextNode/preceding::tei:pb[1]
+                let $page := $contextNode/preceding::tei:pb[@ed = $edition][1]
                 return
                     util:document-name($work) || "?root=" || util:node-id($page)
             else
                 $div-id
-        let $link := $docLink || "&amp;action=search&amp;view=" || $view || "&amp;index=" || $index || "#" || $matchId
+        let $link := $docLink || "&amp;action=search&amp;view=" || $config?view || "&amp;" || "#" || $matchId
         let $config := <config width="60" table="yes" link="{$link}"/>
-        let $kwic := kwic:get-summary($expanded, $match, $config)
-        let $output :=
-            if ($index = "ngram" and contains($model?ngram-query, "*")) then
-                <tr>
-                    <td colspan="3" class="text">
-                        {
-                            <span class="previous">{normalize-space($kwic//td[@class = "previous"]/node())}</span>,
-                            <a href="{$link}"><i class="material-icons">play_arrow</i></a>,
-                            <span class="hi">{normalize-space($kwic//td[@class = "hi"]//text())}</span>,
-                            <span class="following">{normalize-space($kwic//td[@class = "following"]/node())}</span>
-                        }
-                    </td>
-                </tr>
-            else
-                $kwic
-        return $output
+
+        return kwic:get-summary($expanded, $match, $config)
     )
 };
 
-declare %private function app:get-current($div as element()?) {
+declare %private function app:get-current($config as map(*), $div as element()?) {
     if (empty($div)) then
         ()
     else
@@ -963,7 +663,32 @@ declare %private function app:get-current($div as element()?) {
                 and count($div/preceding-sibling::*) < 5 (: less than 5 elements before div :)
                 and $div/.. instance of element(tei:div) (: parent is a div :)
             ) then
+                nav:get-previous-div($config, $div/..)
+            else
+                $div
+};
+
+(:
+declare %private function app:get-current($div as element()?) {
+    if (empty($div)) then
+        ()
+    else
+        if ($div instance of element(tei:teiHeader)) then
+        $div
+        else
+            if (
+                empty($div/preceding-sibling::tei:div)  :)
+(: first div in section :)(:
+
+                and count($div/preceding-sibling::*) < 5 :)
+(: less than 5 elements before div :)(:
+
+                and $div/.. instance of element(tei:div) :)
+(: parent is a div :)(:
+
+            ) then
                 pages:get-previous($div/..)
             else
                 $div
 };
+:)

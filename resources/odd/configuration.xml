@@ -19,10 +19,8 @@
         <property name="section-numbers">false()</property>
         <property name="font-size">"11pt"</property>
         <module uri="http://sarit.indology.info/teipm/latex" prefix="ext-latex" at="xmldb:exist:///db/apps/sarit-pm/modules/ext-latex.xql"/>
-    </output><!-- General fo extension functions -->
-    <output mode="print">
-        <module mode="print" uri="http://www.tei-c.org/tei-simple/xquery/ext-fo" prefix="ext-fo" at="../modules/ext-fo.xql"/>
-    </output><!-- Special web configuration for the documentation (to handle <code>) -->
+    </output>
+    <!-- Special web configuration for the documentation (to handle <code>) -->
     <output mode="web" odd="sarit">
         <module mode="html" uri="http://sarit.indology.info/app/pmf-html" prefix="ext-html" at="xmldb:exist:///db/apps/sarit-pm/modules/ext-html.xql"/>
     </output>

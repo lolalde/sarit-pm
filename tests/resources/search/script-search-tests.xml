@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:id="avayavinirākaraṇa">
+  <teiHeader xml:lang="en">
+    <fileDesc>
+      <titleStmt>
+        <title>Test setup from Avayavinirākaraṇa</title>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>SARIT: Search and Retrieval of Indic Texts. DFG/NEH Project (NEH-No.
+	HG5004113), 2013-2017 </publisher>
+      </publicationStmt>
+      <sourceDesc>
+        <bibl xml:id="avaya-thakur-book">
+          <title type="main">Aśokanibandhau Avayavinirākaraṇaṃ Samānyadūṣaṇaṃ ca</title>
+          <author>Aśoka</author>
+          <editor xml:id="avaya-ed">Anantalal Thakur</editor>
+          <publisher>Kashi Prasad Jayaswal Research Institute</publisher>
+          <pubPlace>Patna</pubPlace>
+          <date>1974</date>
+          <note>The manuscript consulted by Thakur is described below.</note>
+        </bibl>
+      </sourceDesc>
+    </fileDesc>
+    <encodingDesc>
+      <p>Taken from SARIT-corpus/avayavinirakarana.xml</p>
+    </encodingDesc>
+  </teiHeader>
+  <text xml:lang="sa-Deva">
+    <body>
+      <div>
+	<p xml:lang="sa-Deva">यो विरुद्धधर्माध्यासवान् नासावेकः । यथा घटादिरर्थः ।</p>
+	<p xml:lang="sa-Latn">yo viruddhadharmādhyāsavān nāsāvekaḥ । yathā ghaṭādirarthaḥ ।</p>
+      </div>
+    </body>
+  </text>
+</TEI>
